@@ -1,0 +1,11 @@
+<!doctype html>
+<html>
+<body>
+  <h2>Welcome {{ username }}!</h2>
+  <p>Your verification code is:</p>
+  <h3 style="letter-spacing:3px">{{ code }}</h3>
+  <p>Copy it into the app or click:</p>
+  <a href="http://localhost:8000/graphql?code={{ code }}">Verify now</a>
+  <p>Code expires in 15 minutes.</p>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Welcome {{ username }}!
+
+Your verification code is: {{ code }}
+
+Valid for 15 min.
