@@ -7,7 +7,8 @@ from strawberry.file_uploads import Upload
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from graphql_jwt.shortcuts import get_token
-from apps.graphql_api.utils import get_user
+from apps.chat.models import Conversation, ConversationParticipant
+from apps.graphql_api.utils import get_user, timeuuid_to_datetime
 from apps.users.models import Profile
 from apps.users.services import (
     ensure_email_verified, user_create, user_resend_verification_email, user_reset_password_confirm, user_reset_password_request,
@@ -15,17 +16,22 @@ from apps.users.services import (
     profile_unfollow, profile_block, profile_unblock,
     build_user_data, build_profile_data
 )
+from apps.chat import services  
 from graphql_jwt.utils import jwt_decode
 from django.contrib.auth import get_user_model
 from graphql_jwt.refresh_token.models import RefreshToken
 from graphql_jwt.exceptions import PermissionDenied
 from typing import Optional
-from datetime import datetime, date
+from datetime import date
 from typing import List
 from requests.auth import HTTPBasicAuth
 from apps.users.utils import verify_turnstile_token # 👈 Import the function
-from .types import UserType, ProfileType, AuthPayload, AuthSuccess, AuthRequiresVerification, RefreshPayload, VerifyEmailPayload
+from .types import ConversationType, MessageType, UserType, ProfileType, AuthPayload, AuthSuccess, AuthRequiresVerification, RefreshPayload, VerifyEmailPayload
+import uuid
+from django.db.models import Count
+
 User = get_user_model()
+
 
 
 # ---------- Inputs ----------
@@ -316,7 +322,12 @@ class Mutation:
         except ObjectDoesNotExist:
             raise GraphQLError("User not found")
 
-# ---------- Queries ----------
+    @strawberry.mutation
+    def start_conversation(self, info: Info, participant_username: str) -> ConversationType:
+        return services.start_conversation(info, participant_username)
+    
+    
+  # ---------- Queries ----------
 @strawberry.type
 class Query:
     @strawberry.field
@@ -414,4 +425,14 @@ class Query:
         # --- Part 5: Build and return the response (remains the same) ---
         return [build_profile_data(profile=p, current_user=current_user) for p in ordered_profiles]
     
+    @strawberry.field
+    def conversations(self, info: Info) -> list[ConversationType]:
+        return services.list_conversations(info)
+
+    @strawberry.field
+    def messages(
+        self, info: Info, conversation_id: str, limit: int = 50
+    ) -> list[MessageType]:
+        return services.list_messages(info, conversation_id, limit)
+        
 schema = strawberry.Schema(query=Query, mutation=Mutation)

@@ -38,6 +38,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'apps.users.apps.UsersConfig',
     'apps.graphql_api',
+    'apps.chat.apps.ChatConfig',
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880

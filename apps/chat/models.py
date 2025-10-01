@@ -2,9 +2,11 @@
 
 from django.db import models
 from django.contrib.auth import get_user_model
+import uuid
 User = get_user_model()
 
 class Conversation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     last_message_at = models.DateTimeField(null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -26,9 +28,9 @@ class ConversationParticipant(models.Model):
     conversation = models.ForeignKey(
         Conversation, 
         on_delete=models.CASCADE,
-        related_name='conversation_participants'
     )
-    
+    last_read_timestamp = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         unique_together = ('user', 'conversation')
         
